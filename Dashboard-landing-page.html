@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cable Monitor — Dashboard landing page</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #0e1a26;
+      --tile: #122433;
+      --line: rgba(125, 211, 252, 0.14);
+      --text: #eef6fb;
+      --muted: #8aa4b6;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --violet: #c4b5fd;
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(34, 211, 238, 0.12), transparent 50%),
+        radial-gradient(700px 380px at 100% 10%, rgba(196, 181, 253, 0.1), transparent 46%),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 24px;
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+    }
+
+    .lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 58ch;
+      line-height: 1.5;
+    }
+
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .live i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.55fr 0.95fr;
+      gap: 16px;
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 38%), var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .path {
+      display: grid;
+      grid-template-columns: 150px 1fr 150px;
+      align-items: center;
+      gap: 10px;
+      min-height: 210px;
+      margin-bottom: 18px;
+    }
+
+    .box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--tile);
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .box.b1 { outline: 1px solid rgba(34, 211, 238, 0.28); }
+    .box.b2 { outline: 1px solid rgba(196, 181, 253, 0.32); }
+
+    .box strong { display: block; font-size: 12px; margin-bottom: 6px; }
+    .box b { display: block; font-size: 1.55rem; letter-spacing: -0.03em; }
+    .box small { color: var(--muted); }
+
+    .cable {
+      position: relative;
+      height: 10px;
+      border-radius: 99px;
+      background: linear-gradient(90deg, #22d3ee, #67e8f9 40%, #c4b5fd);
+    }
+
+    .cable span {
+      position: absolute;
+      left: 50%;
+      top: -28px;
+      transform: translateX(-50%);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .ambient {
+      margin: 0 0 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.22);
+      background: rgba(251, 191, 36, 0.06);
+    }
+
+    .ambient b { font-size: 1.3rem; color: var(--amber); }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .kpi {
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .kpi label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+
+    .kpi b {
+      font-size: 1.7rem;
+      letter-spacing: -0.04em;
+    }
+
+    .kpi em {
+      font-style: normal;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-left: 2px;
+    }
+
+    .rows { display: grid; gap: 10px; }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .row span { color: var(--muted); font-size: 13px; }
+    .row b { font-variant-numeric: tabular-nums; }
+
+    .deltas {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .delta-value {
+      font-size: 2.4rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+      margin: 4px 0 10px;
+    }
+
+    .meter {
+      height: 8px;
+      border-radius: 99px;
+      background: rgba(138, 164, 182, 0.18);
+      overflow: hidden;
+    }
+
+    .meter i { display: block; height: 100%; border-radius: inherit; }
+    .watt i { width: 31%; background: linear-gradient(90deg, var(--rose), #fb923c); }
+    .temp i { width: 45%; background: linear-gradient(90deg, var(--cyan), var(--violet)); }
+
+    .note {
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .layout, .deltas, .kpis, .path { grid-template-columns: 1fr; }
+      header { flex-direction: column; align-items: flex-start; }
+      .path { min-height: auto; }
+      .cable { height: 72px; width: 10px; margin: 8px auto; }
+      .cable span { position: static; transform: none; display: block; margin-bottom: 8px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <p class="kicker">E-solutions · Innovation 2026–2027</p>
+        <h1>Cable energy-loss dashboard</h1>
+        <p class="lead">
+          Concept landing page for a measurement system that tracks current, power,
+          voltage, cable temperatures, outdoor temperature, and the difference between Box 1 and Box 2.
+        </p>
+      </div>
+      <div class="live"><i></i> Sample feeder A-14 · concept data</div>
+    </header>
+
+    <section class="layout">
+      <article class="panel">
+        <h2>Cable path</h2>
+        <div class="path">
+          <div class="box b1">
+            <strong>Box 1 · entrance</strong>
+            <b>24.6 °C</b>
+            <small>2770 W in</small>
+          </div>
+          <div class="cable"><span>Current flow →</span></div>
+          <div class="box b2">
+            <strong>Box 2 · exit</strong>
+            <b>26.7 °C</b>
+            <small>2737 W out</small>
+          </div>
+        </div>
+
+        <div class="ambient">
+          <span>Temperature outside</span>
+          <b>18.4 °C</b>
+        </div>
+
+        <div class="kpis">
+          <div class="kpi">
+            <label>Ampere through cable</label>
+            <b>12.2<em>A</em></b>
+          </div>
+          <div class="kpi">
+            <label>Voltage</label>
+            <b>230.4<em>V</em></b>
+          </div>
+          <div class="kpi">
+            <label>Watt on the line</label>
+            <b>2770<em>W</em></b>
+          </div>
+        </div>
+      </article>
+
+      <aside class="panel">
+        <h2>All tracked readings</h2>
+        <div class="rows">
+          <div class="row"><span>Ampere</span><b>12.2 A</b></div>
+          <div class="row"><span>Watt (cable / Box 1)</span><b>2770 W</b></div>
+          <div class="row"><span>Voltage</span><b>230.4 V</b></div>
+          <div class="row"><span>Temp entrance (Box 1)</span><b>24.6 °C</b></div>
+          <div class="row"><span>Temp exit (Box 2)</span><b>26.7 °C</b></div>
+          <div class="row"><span>Temp outside</span><b>18.4 °C</b></div>
+          <div class="row"><span>Watt Box 2</span><b>2737 W</b></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="deltas">
+      <article class="panel">
+        <h2>Watt difference · Box 1 − Box 2</h2>
+        <div class="delta-value" style="color: var(--rose);">33 W</div>
+        <div class="meter watt"><i></i></div>
+        <p class="note">
+          Fake loss along the cable: Box 1 measures 2770 W and Box 2 measures 2737 W.
+          That is about 2.8% of incoming power.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Temperature difference · Box 1 − Box 2</h2>
+        <div class="delta-value" style="color: var(--cyan);">2.1 °C</div>
+        <div class="meter temp"><i></i></div>
+        <p class="note">
+          Entrance is warmer than the exit. Outdoor air is 24.2 °C cooler than Box 1
+          and 19.7 °C cooler than Box 2.
+        </p>
+      </article>
+    </section>
+
+    <footer>Static HTML concept. Values are sample data, not live sensors.</footer>
+  </div>
+</body>
+</html>
