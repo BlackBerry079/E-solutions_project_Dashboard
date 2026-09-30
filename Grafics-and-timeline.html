@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cable Monitor — Graphics and timeline</title>
+  <style>
+    :root {
+      --bg: #071018;
+      --panel: #0e1a26;
+      --tile: #122433;
+      --line: rgba(125, 211, 252, 0.14);
+      --text: #eef6fb;
+      --muted: #8aa4b6;
+      --cyan: #22d3ee;
+      --green: #4ade80;
+      --amber: #fbbf24;
+      --rose: #fb7185;
+      --violet: #c4b5fd;
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.38);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: "Segoe UI", Inter, system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(900px 420px at 0% 0%, rgba(34, 211, 238, 0.12), transparent 50%),
+        radial-gradient(700px 380px at 100% 10%, rgba(196, 181, 253, 0.1), transparent 46%),
+        var(--bg);
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 20px 40px;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
+
+    .kicker {
+      margin: 0 0 8px;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+    }
+
+    .lead {
+      margin: 8px 0 0;
+      color: var(--muted);
+      max-width: 62ch;
+      line-height: 1.5;
+    }
+
+    .live {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      white-space: nowrap;
+    }
+
+    .live i {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.18);
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .nav a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+    }
+
+    .nav a.active,
+    .nav a:hover {
+      color: var(--text);
+      border-color: rgba(34, 211, 238, 0.45);
+    }
+
+    .panel {
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), transparent 38%), var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 20px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 12px;
+      font-weight: 650;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .chart-wide { grid-column: 1 / -1; }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      margin: 0 0 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 18px;
+      height: 3px;
+      border-radius: 99px;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    .l-cyan::before { background: var(--cyan); }
+    .l-violet::before { background: var(--violet); }
+    .l-amber::before { background: var(--amber); }
+    .l-rose::before { background: var(--rose); }
+    .l-green::before { background: var(--green); }
+
+    svg.chart {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .axis { fill: var(--muted); font-size: 11px; font-family: inherit; }
+    .grid-line { stroke: rgba(125, 211, 252, 0.1); stroke-width: 1; }
+
+    .bars {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 8px;
+      align-items: end;
+      height: 160px;
+      margin-top: 8px;
+    }
+
+    .bar-col {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      height: 100%;
+      gap: 6px;
+    }
+
+    .bar-col i {
+      display: block;
+      width: 100%;
+      max-width: 28px;
+      border-radius: 8px 8px 2px 2px;
+      background: linear-gradient(180deg, var(--rose), #fb923c);
+    }
+
+    .bar-col b { font-size: 11px; }
+    .bar-col small { color: var(--muted); font-size: 11px; }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 22px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 4px;
+      bottom: 4px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--cyan), var(--violet));
+    }
+
+    .event {
+      position: relative;
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .event::before {
+      content: "";
+      position: absolute;
+      left: -19px;
+      top: 16px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.16);
+    }
+
+    .event.peak::before { background: var(--rose); box-shadow: 0 0 0 4px rgba(251, 113, 133, 0.2); }
+    .event.warm::before { background: var(--amber); box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.18); }
+
+    .event time {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 4px;
+    }
+
+    .event p { margin: 4px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+
+    .now-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .now {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      background: var(--tile);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .now span { color: var(--muted); font-size: 13px; }
+
+    footer {
+      margin-top: 20px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .charts, .split { grid-template-columns: 1fr; }
+      .chart-wide { grid-column: auto; }
+      header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div>
+        <p class="kicker">E-solutions · Innovation 2026–2027</p>
+        <h1>Graphics and timeline</h1>
+        <p class="lead">
+          Sample day for feeder A-14. Charts show ampere, watt, voltage, cable
+          temperatures, outdoor temperature, and the Box 1 vs Box 2 differences over time.
+        </p>
+      </div>
+      <div class="live"><i></i> 30 Sep 2026 · 12:00 snapshot</div>
+    </header>
+
+    <nav class="nav">
+      <a href="Dashboard-landing-page.html">Overview</a>
+      <a class="active" href="Grafics-and-timeline.html">Graphics &amp; timeline</a>
+    </nav>
+
+    <section class="charts">
+      <article class="panel chart-wide">
+        <h2>Watt through the cable · Box 1 vs Box 2</h2>
+        <p class="legend">
+          <span class="l-cyan">Box 1 · entrance</span>
+          <span class="l-violet">Box 2 · exit</span>
+        </p>
+        <svg class="chart" viewBox="0 0 700 250" role="img" aria-label="Watt at Box 1 and Box 2 from 06:00 to 18:00">
+          <line class="grid-line" x1="50" y1="30" x2="660" y2="30" />
+          <line class="grid-line" x1="50" y1="90" x2="660" y2="90" />
+          <line class="grid-line" x1="50" y1="150" x2="660" y2="150" />
+          <line class="grid-line" x1="50" y1="210" x2="660" y2="210" />
+          <text class="axis" x="8" y="34">2.9 kW</text>
+          <text class="axis" x="8" y="94">2.5 kW</text>
+          <text class="axis" x="8" y="154">2.2 kW</text>
+          <text class="axis" x="8" y="214">1.8 kW</text>
+          <polyline fill="none" stroke="#22d3ee" stroke-width="3"
+            points="50,200 150,108 250,60 350,42 450,44 550,80 650,148" />
+          <polyline fill="none" stroke="#c4b5fd" stroke-width="3" stroke-dasharray="6 5"
+            points="50,203 150,112 250,65 350,48 450,50 550,85 650,151" />
+          <text class="axis" x="38" y="238">06:00</text>
+          <text class="axis" x="138" y="238">08:00</text>
+          <text class="axis" x="238" y="238">10:00</text>
+          <text class="axis" x="338" y="238">12:00</text>
+          <text class="axis" x="438" y="238">14:00</text>
+          <text class="axis" x="538" y="238">16:00</text>
+          <text class="axis" x="638" y="238">18:00</text>
+        </svg>
+      </article>
+
+      <article class="panel">
+        <h2>Temperature · entrance, exit, outside</h2>
+        <p class="legend">
+          <span class="l-cyan">Box 1</span>
+          <span class="l-violet">Box 2</span>
+          <span class="l-amber">Outside</span>
+        </p>
+        <svg class="chart" viewBox="0 0 700 250" role="img" aria-label="Temperatures from 06:00 to 18:00">
+          <line class="grid-line" x1="50" y1="30" x2="660" y2="30" />
+          <line class="grid-line" x1="50" y1="90" x2="660" y2="90" />
+          <line class="grid-line" x1="50" y1="150" x2="660" y2="150" />
+          <line class="grid-line" x1="50" y1="210" x2="660" y2="210" />
+          <text class="axis" x="14" y="34">30 °C</text>
+          <text class="axis" x="14" y="94">24 °C</text>
+          <text class="axis" x="14" y="154">18 °C</text>
+          <text class="axis" x="14" y="214">12 °C</text>
+          <polyline fill="none" stroke="#22d3ee" stroke-width="3"
+            points="50,114 150,93 250,82 350,71 450,67 550,75 650,88" />
+          <polyline fill="none" stroke="#c4b5fd" stroke-width="3"
+            points="50,106 150,79 250,64 350,51 450,47 550,58 650,76" />
+          <polyline fill="none" stroke="#fbbf24" stroke-width="3" stroke-dasharray="5 4"
+            points="50,187 150,164 250,144 350,130 450,124 550,134 650,151" />
+          <text class="axis" x="38" y="238">06:00</text>
+          <text class="axis" x="338" y="238">12:00</text>
+          <text class="axis" x="638" y="238">18:00</text>
+        </svg>
+      </article>
+
+      <article class="panel">
+        <h2>Ampere and voltage</h2>
+        <p class="legend">
+          <span class="l-green">Current (A)</span>
+          <span class="l-rose">Voltage (offset, 229–231 V)</span>
+        </p>
+        <svg class="chart" viewBox="0 0 700 250" role="img" aria-label="Ampere and voltage from 06:00 to 18:00">
+          <line class="grid-line" x1="50" y1="30" x2="660" y2="30" />
+          <line class="grid-line" x1="50" y1="90" x2="660" y2="90" />
+          <line class="grid-line" x1="50" y1="150" x2="660" y2="150" />
+          <line class="grid-line" x1="50" y1="210" x2="660" y2="210" />
+          <text class="axis" x="18" y="34">14 A</text>
+          <text class="axis" x="18" y="94">12 A</text>
+          <text class="axis" x="18" y="154">10 A</text>
+          <text class="axis" x="18" y="214">8 A</text>
+          <polyline fill="none" stroke="#4ade80" stroke-width="3"
+            points="50,180 150,118 250,85 350,69 450,74 550,99 650,145" />
+          <polyline fill="none" stroke="#fb7185" stroke-width="2" stroke-dasharray="4 4"
+            points="50,128 150,110 250,104 350,92 450,98 550,104 650,116" />
+          <text class="axis" x="38" y="238">06:00</text>
+          <text class="axis" x="338" y="238">12:00</text>
+          <text class="axis" x="638" y="238">18:00</text>
+        </svg>
+      </article>
+
+      <article class="panel chart-wide">
+        <h2>Watt difference · Box 1 − Box 2</h2>
+        <div class="bars">
+          <div class="bar-col"><i style="height: 42%;"></i><b>18 W</b><small>06:00</small></div>
+          <div class="bar-col"><i style="height: 56%;"></i><b>24 W</b><small>08:00</small></div>
+          <div class="bar-col"><i style="height: 68%;"></i><b>29 W</b><small>10:00</small></div>
+          <div class="bar-col"><i style="height: 77%;"></i><b>33 W</b><small>12:00</small></div>
+          <div class="bar-col"><i style="height: 82%;"></i><b>35 W</b><small>14:00</small></div>
+          <div class="bar-col"><i style="height: 68%;"></i><b>29 W</b><small>16:00</small></div>
+          <div class="bar-col"><i style="height: 51%;"></i><b>22 W</b><small>18:00</small></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="split">
+      <article class="panel">
+        <h2>Timeline · 30 September 2026</h2>
+        <div class="timeline">
+          <div class="event">
+            <time>06:00</time>
+            <strong>Low morning load</strong>
+            <p>8.1 A · 1 860 W in / 1 842 W out. Entrance 20.1 °C, exit 21.0 °C, outside 12.4 °C.</p>
+          </div>
+          <div class="event">
+            <time>08:00</time>
+            <strong>Load climbing</strong>
+            <p>Current rises to 10.4 A. Watt difference grows to 24 W as occupancy starts.</p>
+          </div>
+          <div class="event warm">
+            <time>10:00</time>
+            <strong>Cable warming</strong>
+            <p>Box 2 is 1.9 °C warmer than Box 1. Outdoor air is 16.9 °C.</p>
+          </div>
+          <div class="event peak">
+            <time>12:00 · current snapshot</time>
+            <strong>Peak power on the line</strong>
+            <p>12.2 A · 230.4 V · 2 770 W at Box 1 and 2 737 W at Box 2 (33 W difference). Temperatures: 24.6 °C entrance, 26.7 °C exit, 18.4 °C outside.</p>
+          </div>
+          <div class="event warm">
+            <time>14:00</time>
+            <strong>Warmest cable of the day</strong>
+            <p>Exit reaches 27.2 °C. Watt difference peaks at 35 W. Temperature difference stays 2.1 °C.</p>
+          </div>
+          <div class="event">
+            <time>16:00</time>
+            <strong>Load easing</strong>
+            <p>11.1 A and 29 W loss. Both boxes cool a little as outdoor temperature falls to 18.0 °C.</p>
+          </div>
+          <div class="event">
+            <time>18:00</time>
+            <strong>Evening drop</strong>
+            <p>9.4 A · 22 W difference. Entrance 22.8 °C, exit 24.1 °C, outside 16.2 °C.</p>
+          </div>
+        </div>
+      </article>
+
+      <aside class="panel">
+        <h2>Latest values (12:00)</h2>
+        <div class="now-grid">
+          <div class="now"><span>Ampere</span><b>12.2 A</b></div>
+          <div class="now"><span>Voltage</span><b>230.4 V</b></div>
+          <div class="now"><span>Watt Box 1</span><b>2 770 W</b></div>
+          <div class="now"><span>Watt Box 2</span><b>2 737 W</b></div>
+          <div class="now"><span>Watt difference</span><b>33 W</b></div>
+          <div class="now"><span>Temp entrance</span><b>24.6 °C</b></div>
+          <div class="now"><span>Temp exit</span><b>26.7 °C</b></div>
+          <div class="now"><span>Temp outside</span><b>18.4 °C</b></div>
+          <div class="now"><span>Temp difference</span><b>2.1 °C</b></div>
+        </div>
+      </aside>
+    </section>
+
+    <footer>Static HTML concept with SVG charts. Values are sample data, not live sensors.</footer>
+  </div>
+</body>
+</html>
